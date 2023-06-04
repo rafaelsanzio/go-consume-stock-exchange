@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  mongo:
+    image: "mongo:latest"
+    container_name: "mongo-consume-stock-exchange"
+    environment:
+      - MONGO_INITDB_DATABASE=${MONGO_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo-js:ro
+    ports:
+      - "${MONGO_PORT}:${MONGO_PORT}"
+    networks:
+      - app_network
+    env_file:
+      - .env
+
+  consumer:
+    container_name: "consumer"
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    depends_on:
+      - mongo
+    networks:
+      - app_network
+    env_file:
+      - .env
+networks:
+  app_network:
+    external: true
